@@ -23,6 +23,8 @@ class Main extends luxe.Game {
     var thrown_pencils: Array<Pencil> = [];
     var thrown_pencil_speed: Float = 240.0;
 
+    var pencil_half_height: Float = 10;
+
     override function ready() {
             // Init preload
         var preload = new Parcel();
@@ -136,11 +138,11 @@ class Main extends luxe.Game {
 
             // Move current pencil upward
         if (pressing_up_key) {
-            current_pencil.pos.y -= dt * current_pencil_speed;
+            current_pencil.pos.y = Math.max(current_pencil.pos.y - dt * current_pencil_speed, pencil_half_height);
         }
             // Move current pencil downward
         else if (pressing_down_key) {
-            current_pencil.pos.y += dt * current_pencil_speed;
+            current_pencil.pos.y = Math.min(current_pencil.pos.y + dt * current_pencil_speed, Luxe.screen.h - pencil_half_height);
         }
 
             // Throw the pencil?
@@ -149,7 +151,7 @@ class Main extends luxe.Game {
             use_new_pencil();
         }
 
-            // Update throw pencils position
+            // Update thrown pencils position
         for (thrown_pencil in thrown_pencils) {
             thrown_pencil.pos.x += dt * thrown_pencil_speed;
         }
