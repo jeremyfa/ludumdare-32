@@ -17,10 +17,11 @@ class Main extends luxe.Game {
 
     var current_pencil: Pencil;
     var current_pencil_speed: Float = 120.0;
-    var current_pencil_initial_x: Float = -50;
+    var current_pencil_initial_x: Float = -100;
     var current_pencil_final_x: Float = 0;
 
     var thrown_pencils: Array<Pencil> = [];
+    var thrown_pencil_speed: Float = 240.0;
 
     override function ready() {
             // Init preload
@@ -118,28 +119,39 @@ class Main extends luxe.Game {
             // just move it a bit more to the right
         if (current_pencil.pos.x < current_pencil_final_x) {
                 // Update X
-            current_pencil.pos.x = Math.min(current_pencil.pos.x + dt * current_pencil_speed, current_pencil_final_x);
+            current_pencil.pos.x = Math.min(current_pencil.pos.x + dt * current_pencil_speed * 2, current_pencil_final_x);
+
+                // Allow pressing space only when the pencil is at its final X position
+            just_pressed_space_key = false;
         }
         else {
-                // Otherwise, look for what is pressed on the keyboard
-                // Are we pressing something we care about?
-            pressing_up_key = Luxe.input.inputdown('up');
-            pressing_down_key = Luxe.input.inputdown('down');
+                // Allow pressing space only when the pencil is at its final X position
             just_pressed_space_key = Luxe.input.inputpressed('space');
+        }
 
-                // Move current pencil upward
-            if (pressing_up_key) {
-                current_pencil.pos.y -= dt * current_pencil_speed;
-            }
-                // Move current pencil downward
-            else if (pressing_down_key) {
-                current_pencil.pos.y += dt * current_pencil_speed;
-            }
+            // Look for what is pressed on the keyboard
+            // Are we pressing something we care about?
+        pressing_up_key = Luxe.input.inputdown('up');
+        pressing_down_key = Luxe.input.inputdown('down');
 
-                // Throw the pencil?
-            if (just_pressed_space_key) {
-                trace('THROW PENCIL'); // TODO
-            }
+            // Move current pencil upward
+        if (pressing_up_key) {
+            current_pencil.pos.y -= dt * current_pencil_speed;
+        }
+            // Move current pencil downward
+        else if (pressing_down_key) {
+            current_pencil.pos.y += dt * current_pencil_speed;
+        }
+
+            // Throw the pencil?
+        if (just_pressed_space_key) {
+                // Throw the pencil and use a new one
+            use_new_pencil();
+        }
+
+            // Update throw pencils position
+        for (thrown_pencil in thrown_pencils) {
+            thrown_pencil.pos.x += dt * thrown_pencil_speed;
         }
 
     } //update
