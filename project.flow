@@ -1,0 +1,41 @@
+{
+  flow : {
+      build: {
+          android : {
+              sdk : '/opt/android-sdk/',
+              ant_path : '/opt/local/bin/ant'
+          }
+      }
+  },
+  luxe: {
+    window:{
+      width: 800,
+      height: 600,
+      resizable: false,
+      title: 'ld32'
+    }
+  },
+  project : {
+    name : 'ld32',
+    version : '1.0.0',
+    author : 'jeremyfa',
+
+    app : {
+      name : 'ld32',
+      package : 'com.jeremyfa.ld32'
+    },
+
+    build : {
+      dependencies : {
+        luxe : '*',
+      }
+    },
+
+    files : {
+      assets : 'assets/',
+      index : { path:'custom_index.html => index.html', template:'project', not_listed:true }
+    }
+
+  }
+
+}
