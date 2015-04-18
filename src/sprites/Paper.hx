@@ -3,9 +3,19 @@ package sprites;
 import luxe.Sprite;
 import luxe.options.SpriteOptions;
 
+typedef PaperOptions = {
+
+    > SpriteOptions,
+
+    censored: Bool
+
+}
+
 class Paper extends Sprite {
 
-    public function new(options:SpriteOptions)
+    var censored_sprite: Sprite;
+
+    public function new(options:PaperOptions)
     {
             // Pencil's specific setup
         options.texture = Luxe.loadTexture("assets/paper.png");
@@ -13,6 +23,12 @@ class Paper extends Sprite {
 
             // Call parent constructor
         super(options);
+
+        if (options.censored) {
+            censored_sprite = new Sprite({
+
+            });
+        }
     }
 
 

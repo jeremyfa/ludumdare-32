@@ -120,9 +120,10 @@ class Main extends luxe.Game {
     function add_paper() {
 
         var paper = new Paper({
-            pos:        new Vector(Luxe.screen.w + paper_half_width, Math.round(Luxe.screen.h * Math.random())),
+            pos:        new Vector(Luxe.screen.w + paper_half_width, Math.round(Luxe.screen.h * Luxe.utils.random.get())),
             depth:      2,
-            rotation_z: Math.round(Math.random() * 360 - 180)
+            rotation_z: Math.round(Luxe.utils.random.float(0, 360) - 180),
+            censored:   Luxe.utils.random.bool()
         });
 
         papers.push(paper);
@@ -170,7 +171,7 @@ class Main extends luxe.Game {
         }
 
             // Add paper?
-        if (Math.random() > 0.99) {
+        if (Luxe.utils.random.bool(0.01)) {
             add_paper();
         }
 
