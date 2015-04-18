@@ -17,7 +17,7 @@ class Main extends luxe.Game {
 
     var current_pencil: Pencil;
     var current_pencil_speed: Float = 190.0;
-    var current_pencil_initial_x: Float = -100;
+    var current_pencil_initial_x: Float = -150;
     var current_pencil_final_x: Float = 0;
 
     var thrown_pencils: Array<Pencil> = [];
@@ -26,6 +26,7 @@ class Main extends luxe.Game {
     var paper_half_width: Float = 250.0;
     var papers_speed: Float = 200.0;
     var papers: Array<Paper> = [];
+    var last_paper_sub_depth: Float = 0.0;
 
     var pencil_half_width: Float = 100;
     var pencil_half_height: Float = 10;
@@ -121,10 +122,19 @@ class Main extends luxe.Game {
 
         var paper = new Paper({
             pos:        new Vector(Luxe.screen.w + paper_half_width, Math.round(Luxe.screen.h * Luxe.utils.random.get())),
-            depth:      2,
-            rotation_z: Math.round(Luxe.utils.random.float(0, 360) - 180),
+            depth:      2 + last_paper_sub_depth,
+            rotation_z: Math.round(Luxe.utils.random.float(0, 90) - 180),
             censored:   Luxe.utils.random.bool()
         });
+
+            // Increase depth a little bit to be sure papers
+            // will overlap each other in a natural way
+        if (last_paper_sub_depth > 0.9) {
+            last_paper_sub_depth = 0.0;
+        }
+        else {
+            last_paper_sub_depth += 0.001;
+        }
 
         papers.push(paper);
 
