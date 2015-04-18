@@ -23,6 +23,7 @@ class Main extends luxe.Game {
     var thrown_pencils: Array<Pencil> = [];
     var thrown_pencil_speed: Float = 240.0;
 
+    var pencil_half_width: Float = 100;
     var pencil_half_height: Float = 10;
 
     override function ready() {
@@ -154,6 +155,12 @@ class Main extends luxe.Game {
             // Update thrown pencils position
         for (thrown_pencil in thrown_pencils) {
             thrown_pencil.pos.x += dt * thrown_pencil_speed;
+
+                // Remove pencils outside screen
+            if (thrown_pencil.pos.x - pencil_half_width > Luxe.screen.w) {
+                thrown_pencils.remove(thrown_pencil);
+                thrown_pencil.destroy();
+            }
         }
 
     } //update
