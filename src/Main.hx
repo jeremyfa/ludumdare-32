@@ -16,7 +16,7 @@ class Main extends luxe.Game {
     var just_pressed_space_key: Bool;
 
     var current_pencil: Pencil;
-    var current_pencil_speed: Float = 120.0;
+    var current_pencil_speed: Float = 190.0;
     var current_pencil_initial_x: Float = -100;
     var current_pencil_final_x: Float = 0;
 
