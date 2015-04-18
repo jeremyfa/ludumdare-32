@@ -23,6 +23,10 @@ class Main extends luxe.Game {
     var thrown_pencils: Array<Pencil> = [];
     var thrown_pencil_speed: Float = 240.0;
 
+    var paper_half_width: Float = 250.0;
+    var papers_speed: Float = 200.0;
+    var papers: Array<Paper> = [];
+
     var pencil_half_width: Float = 100;
     var pencil_half_height: Float = 10;
 
@@ -106,11 +110,24 @@ class Main extends luxe.Game {
 
             // Create pencil sprite
         current_pencil = new Pencil({
-            depth:      2,
+            depth:      3,
             pos:        initial_position
         });
 
     } //create_new_pencil
+
+
+    function add_paper() {
+
+        var paper = new Paper({
+            pos:        new Vector(Luxe.screen.w + paper_half_width, Math.round(Luxe.screen.h * Math.random())),
+            depth:      2,
+            rotation_z: Math.round(Math.random() * 360 - 180)
+        });
+
+        papers.push(paper);
+
+    } //add_paper
 
 
     override function update(dt:Float) {
@@ -152,6 +169,11 @@ class Main extends luxe.Game {
             use_new_pencil();
         }
 
+            // Add paper?
+        if (Math.random() > 0.99) {
+            add_paper();
+        }
+
             // Update thrown pencils position
         for (thrown_pencil in thrown_pencils) {
             thrown_pencil.pos.x += dt * thrown_pencil_speed;
@@ -160,6 +182,17 @@ class Main extends luxe.Game {
             if (thrown_pencil.pos.x - pencil_half_width > Luxe.screen.w) {
                 thrown_pencils.remove(thrown_pencil);
                 thrown_pencil.destroy();
+            }
+        }
+
+            // Update papers position
+        for (paper in papers) {
+            paper.pos.x -= dt * papers_speed;
+
+                // Remove papers outside screen
+            if (paper.pos.x + paper_half_width < 0) {
+                papers.remove(paper);
+                paper.destroy();
             }
         }
 
