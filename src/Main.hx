@@ -9,6 +9,11 @@ import snow.system.input.Keycodes;
 
 import sprites.*;
 
+import luxe.collision.shapes.*;
+import luxe.collision.Collision;
+
+import motion.Actuate;
+
 class Main extends luxe.Game {
 
     var pressing_up_key: Bool;
@@ -118,12 +123,54 @@ class Main extends luxe.Game {
     } //create_new_pencil
 
 
+    function use_drawing_pencil(thrown_pencil:Pencil) {
+            // Get thrown pencil position
+        var pos = thrown_pencil.pos;
+            // Ajust position from sprite change
+        pos.y -= 40;
+
+            // Remove throw pencil
+        thrown_pencils.remove(thrown_pencil);
+        thrown_pencil.destroy();
+
+            // Create drawing pencil
+        var drawing_pencil = new DrawingPencil({
+            pos:    pos,
+            depth:  3
+        });
+
+            // Do some animation (move the pencil up and down)
+        var initial_y = pos.y;
+        var step = 3.0;
+        Actuate.timer(0.1).onUpdate(function() {
+            drawing_pencil.pos.y += step;
+        }).onComplete(function() {
+            Actuate.timer(0.2).onUpdate(function() {
+                drawing_pencil.pos.y -= step;
+            }).onComplete(function() {
+                Actuate.timer(0.1).onUpdate(function() {
+                    drawing_pencil.pos.y += step;
+                }).onComplete(function() {
+                    Actuate.timer(0.2).onUpdate(function() {
+                        drawing_pencil.pos.y -= step;
+                    }).onComplete(function() {
+                        Actuate.tween(drawing_pencil.color, 0.5, {a: 0}).onComplete(function() {
+                            drawing_pencil.destroy();
+                        });
+                    });
+                });
+            });
+        });
+
+    } //use_drawing_pencil
+
+
     function add_paper() {
 
         var paper = new Paper({
             pos:        new Vector(Luxe.screen.w + paper_half_width, Math.round(Luxe.screen.h * Luxe.utils.random.get())),
             depth:      2 + last_paper_sub_depth,
-            rotation_z: Math.round(Luxe.utils.random.float(0, 90) - 180),
+            rotation_z: Math.round(Luxe.utils.random.float(-90, 90)),
             censored:   Luxe.utils.random.bool()
         });
 
@@ -207,7 +254,37 @@ class Main extends luxe.Game {
             }
         }
 
+            // Detect collisions
+        detect_collisions();
+
     } //update
+
+
+    function detect_collisions() {
+            // Update papers position
+        for (paper in papers) {
+                // Don't draw several times on the same paper
+            if (paper.has_drawing) continue;
+
+            var paper_shape = paper.shape;
+
+            for (thrown_pencil in thrown_pencils) {
+                var pencil_shape = thrown_pencil.shape;
+
+                var collide_info = Collision.shapeWithShape(paper_shape, pencil_shape);
+                if (collide_info != null) {
+                        // Collision detected
+                        // Draw on paper
+                    paper.draw_on_paper(Std.int(Math.min(5, Math.floor(1 + Math.random() * 5))));
+
+                        // And use drawing pencil
+                    use_drawing_pencil(thrown_pencil);
+                    break;
+                }
+            }
+        }
+    }
+
 
     override function onkeyup( e:KeyEvent ) {
 
