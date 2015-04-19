@@ -8,7 +8,7 @@ import luxe.Rectangle;
 
 import luxe.collision.shapes.Polygon;
 
-import motion.Actuate;
+import luxe.tween.Actuate;
 
 typedef PaperOptions = {
 

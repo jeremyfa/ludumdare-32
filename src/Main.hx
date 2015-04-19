@@ -12,7 +12,7 @@ import sprites.*;
 import luxe.collision.shapes.*;
 import luxe.collision.Collision;
 
-import motion.Actuate;
+import luxe.tween.Actuate;
 
 class Main extends luxe.Game {
 
@@ -21,15 +21,15 @@ class Main extends luxe.Game {
     var just_pressed_space_key: Bool;
 
     var current_pencil: Pencil;
-    var current_pencil_speed: Float = 190.0;
-    var current_pencil_initial_x: Float = -150;
+    var current_pencil_speed: Float = 190.0 * 3;
+    var current_pencil_initial_x: Float = -250;
     var current_pencil_final_x: Float = 0;
 
     var thrown_pencils: Array<Pencil> = [];
-    var thrown_pencil_speed: Float = 240.0;
+    var thrown_pencil_speed: Float = 240.0 * 2;
 
     var paper_half_width: Float = 250.0;
-    var papers_speed: Float = 200.0;
+    var papers_speed: Float = 200.0 * 2;
     var papers: Array<Paper> = [];
     var last_paper_sub_depth: Float = 0.0;
 
@@ -142,19 +142,21 @@ class Main extends luxe.Game {
             // Do some animation (move the pencil up and down)
         var initial_y = pos.y;
         var step = 3.0;
+        var timer;
+
         Actuate.timer(0.1).onUpdate(function() {
             drawing_pencil.pos.y += step;
         }).onComplete(function() {
-            Actuate.timer(0.2).onUpdate(function() {
+            Actuate.timer(0.1).onUpdate(function() {
                 drawing_pencil.pos.y -= step;
             }).onComplete(function() {
-                Actuate.timer(0.1).onUpdate(function() {
+                Actuate.timer(0.05).onUpdate(function() {
                     drawing_pencil.pos.y += step;
                 }).onComplete(function() {
-                    Actuate.timer(0.2).onUpdate(function() {
+                    Actuate.timer(0.1).onUpdate(function() {
                         drawing_pencil.pos.y -= step;
                     }).onComplete(function() {
-                        Actuate.tween(drawing_pencil.color, 0.5, {a: 0}).onComplete(function() {
+                        Actuate.tween(drawing_pencil.color, 0.25, {a: 0}).onComplete(function() {
                             drawing_pencil.destroy();
                         });
                     });
@@ -228,7 +230,7 @@ class Main extends luxe.Game {
         }
 
             // Add paper?
-        if (Luxe.utils.random.bool(0.01)) {
+        if (Luxe.utils.random.bool(0.02)) {
             add_paper();
         }
 
