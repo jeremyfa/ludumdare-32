@@ -41,10 +41,12 @@ class Main extends luxe.Game {
     var next_paper_on_same_row_delay: Float = 5.0;
     var new_paper_frequency: Float = 0.025;
 
+    var pencil_width: Float = 200;
     var pencil_half_width: Float = 100;
     var pencil_half_height: Float = 10;
 
     var used_paper_rows: Map<Int,Bool> = new Map<Int,Bool>();
+    var bad_paper_color: Color = new Color(1,0.5,0.5,1);
 
     var background1: Sprite;
     var background2: Sprite;
@@ -298,6 +300,20 @@ class Main extends luxe.Game {
         create_menu();
         introduction_visual.destroy();
         game_is_started = true;
+
+        reset_speed();
+    }
+
+
+    function reset_speed() {
+
+        current_pencil_speed = 240.0 * 1.5;
+        thrown_pencil_speed = 240.0 * 1;
+        papers_speed = 200.0 * 1;
+        new_paper_frequency = 0.025;
+        drawing_pencil_delay = 0.1;
+        next_paper_on_same_row_delay = 5.0;
+        level = 0;
     }
 
 
@@ -311,13 +327,8 @@ class Main extends luxe.Game {
             pencil.destroy();
         }
         thrown_pencils = [];
-        current_pencil_speed = 240.0 * 1.5;
-        thrown_pencil_speed = 240.0 * 1;
-        papers_speed = 200.0 * 1;
-        new_paper_frequency = 0.025;
-        drawing_pencil_delay = 0.1;
-        next_paper_on_same_row_delay = 5.0;
-        level = 0;
+
+        reset_speed();
 
         game_over_visual.destroy();
         game_over_box.destroy();
@@ -425,7 +436,8 @@ class Main extends luxe.Game {
                 // Remove papers outside screen
             if (!paper.censored && !paper.has_drawing) {
                     // Game over it it was a free paper
-                if (paper.pos.x + paper_half_width * 0.25 < 0) {
+                if (paper.pos.x + paper_half_width * 0.05 < 0) {
+                    paper.color = bad_paper_color;
                     game_over();
                     return;
                 }
@@ -468,9 +480,12 @@ class Main extends luxe.Game {
                 if (collide_info != null) {
 
                     if (paper.censored) {
-                            // Game over
-                        game_over();
-                        return;
+                        if (paper.pos.x > paper_half_width * 0.6) {
+                                // Game over
+                            paper.color = bad_paper_color;
+                            game_over();
+                            return;
+                        }
                     }
                     else {
                             // Collision detected
