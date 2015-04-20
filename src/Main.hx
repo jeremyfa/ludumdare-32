@@ -163,6 +163,7 @@ class Main extends luxe.Game {
         Luxe.input.bind_key('up', Keycodes.up);
         Luxe.input.bind_key('down', Keycodes.down);
         Luxe.input.bind_key('space', Keycodes.space);
+        Luxe.input.bind_key('space', Keycodes.key_z);
 
     } //connect_input
 
