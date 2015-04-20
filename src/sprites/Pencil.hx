@@ -32,4 +32,13 @@ class Pencil extends Sprite {
         return shape;
     }
 
+    override public function ondestroy() {
+
+            // Destroy shape
+        shape.destroy();
+        shape = null;
+
+        super.ondestroy();
+    }
+
 }

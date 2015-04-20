@@ -35,6 +35,8 @@ class Paper extends Sprite {
     public var shape(get, null): Polygon;
     public var has_drawing: Bool = false;
 
+    public var censored: Bool = false;
+
     public function new(options:PaperOptions)
     {
             // Pencil's specific setup
@@ -54,6 +56,9 @@ class Paper extends Sprite {
                 color:      censored_color
             });
         }
+
+            // Keep censored value
+        censored = options.censored;
 
             // Create initial shape
         shape = Polygon.rectangle(pos.x, pos.y, paper_width, paper_height, true);
@@ -98,6 +103,8 @@ class Paper extends Sprite {
             // Destroy shape
         shape.destroy();
         shape = null;
+
+        super.ondestroy();
     }
 
 }

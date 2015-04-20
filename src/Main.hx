@@ -4,6 +4,7 @@ import luxe.Parcel;
 import luxe.ParcelProgress;
 import luxe.Sprite;
 import luxe.Vector;
+import luxe.Visual;
 import phoenix.Texture;
 import snow.system.input.Keycodes;
 
@@ -13,6 +14,9 @@ import luxe.collision.shapes.*;
 import luxe.collision.Collision;
 
 import luxe.tween.Actuate;
+
+import phoenix.geometry.TextGeometry;
+import phoenix.geometry.Geometry;
 
 class Main extends luxe.Game {
 
@@ -45,12 +49,25 @@ class Main extends luxe.Game {
     var background1: Sprite;
     var background2: Sprite;
 
+    var score: Int = 0;
+    var score_visual: TextGeometry;
+
+    var introduction_visual: Sprite;
+    var game_over_visual: Sprite;
+    var game_over_box: Visual;
+
+    var game_is_started: Bool = false;
+    var game_is_over: Bool = false;
+
+    var level: Int = 0;
+
     override function ready() {
             // Init preload
         var preload = new Parcel();
 
             // Preload textures
         preload.add_texture("assets/censored.png");
+        preload.add_texture("assets/censored_intro.png");
         preload.add_texture("assets/drawing_1.png");
         preload.add_texture("assets/drawing_2.png");
         preload.add_texture("assets/drawing_3.png");
@@ -60,6 +77,7 @@ class Main extends luxe.Game {
         preload.add_texture("assets/pencil_default.png");
         preload.add_texture("assets/pencil_writing.png");
         preload.add_texture("assets/background.png");
+        preload.add_texture("assets/game_over.png");
 
             // Progress bar
         new ParcelProgress({
@@ -99,7 +117,6 @@ class Main extends luxe.Game {
         });
 
             // Increase speed every 10 second
-        var level = 0;
         Luxe.timer.schedule(10, function() {
             if (level < 14) {
                 current_pencil_speed *= 1.1;
@@ -108,15 +125,35 @@ class Main extends luxe.Game {
                 new_paper_frequency *= 1.1;
                 drawing_pencil_delay /= 1.1;
                 next_paper_on_same_row_delay /= 1.1;
-
-                trace(level++);
+                level++;
             }
         }, true);
 
             // Create first pencil
         use_new_pencil();
 
+            // Display intro
+        introduction_visual = new Sprite({
+            texture:    Luxe.loadTexture("assets/censored_intro.png"),
+            pos:        Luxe.screen.mid,
+            depth:      6
+        });
+
     } //init_scene
+
+
+    function create_menu() {
+            // Create menu
+        Luxe.draw.box({
+            w:      Luxe.screen.w,
+            h:      40,
+            pos:    new Vector(0,0),
+            color:  new Color(0,0,0,0.25),
+            depth:  4.001
+        });
+        update_score_visual();
+
+    } //create_menu
 
 
     function connect_input() {
@@ -199,6 +236,23 @@ class Main extends luxe.Game {
     } //use_drawing_pencil
 
 
+    function update_score_visual() {
+
+        if (score_visual != null) {
+            score_visual.text = ("score: " + score);
+        }
+        else {
+            score_visual = Luxe.draw.text({
+                text: ("score: " + score),
+                point_size: 16,
+                depth: 4.002,
+                pos: new Vector(9, 9)
+            });
+        }
+
+    } //update_score_visual
+
+
     function add_paper() {
 
             // Compute the best row
@@ -218,7 +272,7 @@ class Main extends luxe.Game {
 
             // Create paper
         var paper = new Paper({
-            pos:        new Vector(Luxe.screen.w + paper_half_width, Math.round(Luxe.screen.h * 0.1 + Luxe.screen.h * 0.8 * row / 5.0)),
+            pos:        new Vector(Luxe.screen.w + paper_half_width, Math.round(Luxe.screen.h * 0.2 + Luxe.screen.h * 0.7 * row / 5.0)),
             depth:      2 + last_paper_sub_depth,
             rotation_z: Math.round(Luxe.utils.random.float(-90, 90)),
             censored:   (Math.random() > 0.25)
@@ -238,10 +292,79 @@ class Main extends luxe.Game {
     } //add_paper
 
 
+    function start_game() {
+        create_menu();
+        introduction_visual.destroy();
+        game_is_started = true;
+    }
+
+
+    function restart_game() {
+            // Cleanup
+        for (paper in papers) {
+            paper.destroy();
+        }
+        papers = [];
+        for (pencil in thrown_pencils) {
+            pencil.destroy();
+        }
+        thrown_pencils = [];
+        current_pencil_speed = 240.0 * 1.5;
+        thrown_pencil_speed = 240.0 * 1;
+        papers_speed = 200.0 * 1;
+        new_paper_frequency = 0.025;
+        drawing_pencil_delay = 0.1;
+        next_paper_on_same_row_delay = 5.0;
+        level = 0;
+
+        game_over_visual.destroy();
+        game_over_box.destroy();
+
+            // Start again
+        game_is_over = false;
+        game_is_started = true;
+
+        score = 0;
+        update_score_visual();
+
+    }
+
+
+    function game_over() {
+        game_over_box = new Visual({
+            color:      new Color(0.5,0,0,0.2),
+            size:       new Vector(Luxe.screen.w, Luxe.screen.h),
+            pos:        new Vector(0, 0),
+            depth:      7.0001,
+        });
+
+        Luxe.loadTexture("assets/game_over.png").filter = FilterType.nearest;
+        game_over_visual = new Sprite({
+            texture:    Luxe.loadTexture("assets/game_over.png"),
+            pos:        Luxe.screen.mid,
+            depth:      7.0002
+        });
+
+        game_is_over = true;
+    }
+
+
     override function update(dt:Float) {
 
             // Let's not do something silly. Be patient.
         if (current_pencil == null) return;
+        if (!game_is_started) {
+            if (Luxe.input.inputpressed('space')) {
+                start_game();
+            }
+            return;
+        }
+        else if (game_is_over) {
+            if (Luxe.input.inputpressed('space')) {
+                restart_game();
+            }
+            return;
+        }
 
             // If the current pencil is not at it's final X position,
             // just move it a bit more to the right
@@ -298,9 +421,17 @@ class Main extends luxe.Game {
             paper.pos.x -= dt * papers_speed;
 
                 // Remove papers outside screen
-            if (paper.pos.x + paper_half_width < 0) {
-                papers.remove(paper);
-                paper.destroy();
+            if (!paper.censored && !paper.has_drawing) {
+                    // Game over it it was a free paper
+                if (paper.pos.x + paper_half_width * 0.25 < 0) {
+                    game_over();
+                    return;
+                }
+            } else {
+                if (paper.pos.x + paper_half_width < 0) {
+                    papers.remove(paper);
+                    paper.destroy();
+                }
             }
         }
 
@@ -333,13 +464,26 @@ class Main extends luxe.Game {
 
                 var collide_info = Collision.shapeWithShape(paper_shape, pencil_shape);
                 if (collide_info != null) {
-                        // Collision detected
-                        // Draw on paper
-                    paper.draw_on_paper(Std.int(Math.min(5, Math.floor(1 + Math.random() * 5))));
 
-                        // And use drawing pencil
-                    use_drawing_pencil(thrown_pencil, paper);
-                    break;
+                    if (paper.censored) {
+                            // Game over
+                        game_over();
+                        return;
+                    }
+                    else {
+                            // Collision detected
+                            // Draw on paper
+                        paper.draw_on_paper(Std.int(Math.min(5, Math.floor(1 + Math.random() * 5))));
+
+                            // And use drawing pencil
+                        use_drawing_pencil(thrown_pencil, paper);
+
+                            // Update score
+                        score++;
+                        update_score_visual();
+
+                        break;
+                    }
                 }
             }
         }
