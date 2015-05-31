@@ -52,6 +52,7 @@ class Main extends luxe.Game {
     var background2: Sprite;
 
     var score: Int = 0;
+    var best_score: Int = 0;
     var score_visual: TextGeometry;
 
     var introduction_visual: Sprite;
@@ -60,6 +61,7 @@ class Main extends luxe.Game {
 
     var game_is_started: Bool = false;
     var game_is_over: Bool = false;
+    var game_is_over_since: Float = -1;
 
     var level: Int = 0;
 
@@ -118,12 +120,14 @@ class Main extends luxe.Game {
         background1 = new Sprite({
             pos:        Luxe.screen.mid,
             texture:    Luxe.resources.texture("assets/background.png"),
-            depth:      1.0001
+            depth:      1.0001,
+            scale:      new Vector(Luxe.screen.width / 800.0, Luxe.screen.height / 600)
         });
         background2 = new Sprite({
             pos:        new Vector(Luxe.screen.mid.x + Luxe.screen.w * 0.5, Luxe.screen.mid.y),
             texture:    Luxe.resources.texture("assets/background.png"),
-            depth:      1.0002
+            depth:      1.0002,
+            scale:      new Vector(Luxe.screen.width / 800.0, Luxe.screen.height / 600)
         });
 
             // Increase speed every 10 second
@@ -278,11 +282,11 @@ class Main extends luxe.Game {
     function update_score_visual() {
 
         if (score_visual != null) {
-            score_visual.text = ("score: " + score);
+            score_visual.text = ("score: " + score + "     best: " + best_score);
         }
         else {
             score_visual = Luxe.draw.text({
-                text: ("score: " + score),
+                text: ("score: " + score + "     best: " + best_score),
                 point_size: 16,
                 depth: 4.002,
                 pos: new Vector(9, 9)
@@ -395,6 +399,7 @@ class Main extends luxe.Game {
         });
 
         game_is_over = true;
+        game_is_over_since = Luxe.time;
     }
 
 
@@ -413,7 +418,7 @@ class Main extends luxe.Game {
             return;
         }
         else if (game_is_over) {
-            if (Luxe.input.inputpressed('space') || gamepad_hit) {
+            if ((Luxe.input.inputpressed('space') || gamepad_hit) && Luxe.time > game_is_over_since + 1.5) {
                 restart_game();
             }
             gamepad_hit = false;
@@ -541,6 +546,7 @@ class Main extends luxe.Game {
 
                             // Update score
                         score++;
+                        if (score > best_score) best_score = score;
                         update_score_visual();
 
                         break;
