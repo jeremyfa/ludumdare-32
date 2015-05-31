@@ -12,7 +12,8 @@
       width: 800,
       height: 600,
       resizable: false,
-      title: 'ld32'
+      title: 'censored',
+      fullscreen: true
     }
   },
   project : {
