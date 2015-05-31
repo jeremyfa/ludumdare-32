@@ -15,8 +15,9 @@ class Pencil extends Sprite {
     public function new(options:SpriteOptions)
     {
             // Pencil's specific setup
-        options.texture = Luxe.loadTexture("assets/pencil_default.png");
-        options.texture.filter = phoenix.Texture.FilterType.nearest;
+        options.texture = Luxe.resources.texture("assets/pencil_default.png");
+        options.texture.filter_min = phoenix.Texture.FilterType.nearest;
+        options.texture.filter_mag = phoenix.Texture.FilterType.nearest;
 
             // Call parent constructor
         super(options);

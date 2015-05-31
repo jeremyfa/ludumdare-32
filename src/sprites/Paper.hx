@@ -40,15 +40,16 @@ class Paper extends Sprite {
     public function new(options:PaperOptions)
     {
             // Pencil's specific setup
-        options.texture = Luxe.loadTexture("assets/paper.png");
-        options.texture.filter = phoenix.Texture.FilterType.nearest;
+        options.texture = Luxe.resources.texture("assets/paper.png");
+        options.texture.filter_mag = phoenix.Texture.FilterType.linear;
+        options.texture.filter_min = phoenix.Texture.FilterType.linear;
 
             // Call parent constructor
         super(options);
 
         if (options.censored) {
             censored_sprite = new Sprite({
-                texture:    Luxe.loadTexture("assets/censored.png"),
+                texture:    Luxe.resources.texture("assets/censored.png"),
                 parent:     this,
                 depth:      depth + 0.0002,
                 pos:        censored_position,
@@ -69,7 +70,7 @@ class Paper extends Sprite {
         has_drawing = true;
 
         drawing_sprite = new Sprite({
-            texture:    Luxe.loadTexture("assets/drawing_" + index + ".png"),
+            texture:    Luxe.resources.texture("assets/drawing_" + index + ".png"),
             parent:     this,
             depth:      depth + 0.0001,
             pos:        drawing_position,

@@ -63,23 +63,30 @@ class Main extends luxe.Game {
 
     var level: Int = 0;
 
+    var gamepad_up: Int = 0;
+    var gamepad_down: Int = 0;
+    var gamepad_hit: Bool = false;
+
     override function ready() {
             // Init preload
         var preload = new Parcel();
 
-            // Preload textures
-        preload.add_texture("assets/censored.png");
-        preload.add_texture("assets/censored_intro.png");
-        preload.add_texture("assets/drawing_1.png");
-        preload.add_texture("assets/drawing_2.png");
-        preload.add_texture("assets/drawing_3.png");
-        preload.add_texture("assets/drawing_4.png");
-        preload.add_texture("assets/drawing_5.png");
-        preload.add_texture("assets/paper.png");
-        preload.add_texture("assets/pencil_default.png");
-        preload.add_texture("assets/pencil_writing.png");
-        preload.add_texture("assets/background.png");
-        preload.add_texture("assets/game_over.png");
+        preload.from_json({
+            textures: [
+                { id: "assets/censored.png" },
+                { id: "assets/censored_intro.png" },
+                { id: "assets/drawing_1.png" },
+                { id: "assets/drawing_2.png" },
+                { id: "assets/drawing_3.png" },
+                { id: "assets/drawing_4.png" },
+                { id: "assets/drawing_5.png" },
+                { id: "assets/paper.png" },
+                { id: "assets/pencil_default.png" },
+                { id: "assets/pencil_writing.png" },
+                { id: "assets/background.png" },
+                { id: "assets/game_over.png" }
+            ]
+        });
 
             // Progress bar
         new ParcelProgress({
@@ -104,29 +111,31 @@ class Main extends luxe.Game {
 
 
     function init_scene() {
-        Luxe.loadTexture("assets/background.png").filter = FilterType.nearest;
+        Luxe.resources.texture("assets/background.png").filter_min = FilterType.nearest;
+        Luxe.resources.texture("assets/background.png").filter_mag = FilterType.nearest;
 
             // Create background
         background1 = new Sprite({
             pos:        Luxe.screen.mid,
-            texture:    Luxe.loadTexture("assets/background.png"),
+            texture:    Luxe.resources.texture("assets/background.png"),
             depth:      1.0001
         });
         background2 = new Sprite({
             pos:        new Vector(Luxe.screen.mid.x + Luxe.screen.w * 0.5, Luxe.screen.mid.y),
-            texture:    Luxe.loadTexture("assets/background.png"),
+            texture:    Luxe.resources.texture("assets/background.png"),
             depth:      1.0002
         });
 
             // Increase speed every 10 second
-        Luxe.timer.schedule(10, function() {
-            if (level < 14) {
-                current_pencil_speed *= 1.1;
-                thrown_pencil_speed *= 1.1;
-                papers_speed *= 1.1;
-                new_paper_frequency *= 1.1;
-                drawing_pencil_delay /= 1.1;
-                next_paper_on_same_row_delay /= 1.1;
+        Luxe.timer.schedule(1, function() {
+            if (level < 100) {
+                var factor:Float = (current_pencil_speed + 25.0) / current_pencil_speed;
+                current_pencil_speed *= factor;
+                thrown_pencil_speed *= factor;
+                papers_speed *= factor;
+                new_paper_frequency *= factor;
+                drawing_pencil_delay /= factor;
+                next_paper_on_same_row_delay /= factor;
                 level++;
             }
         }, true);
@@ -135,9 +144,10 @@ class Main extends luxe.Game {
         use_new_pencil();
 
             // Display intro
-        Luxe.loadTexture("assets/censored_intro.png").filter = FilterType.nearest;
+        Luxe.resources.texture("assets/censored_intro.png").filter_min = FilterType.nearest;
+        Luxe.resources.texture("assets/censored_intro.png").filter_mag = FilterType.nearest;
         introduction_visual = new Sprite({
-            texture:    Luxe.loadTexture("assets/censored_intro.png"),
+            texture:    Luxe.resources.texture("assets/censored_intro.png"),
             pos:        Luxe.screen.mid,
             depth:      6
         });
@@ -168,6 +178,31 @@ class Main extends luxe.Game {
         Luxe.input.bind_key('space', Keycodes.key_z);
 
     } //connect_input
+
+    override function ongamepaddown(event:luxe.GamepadEvent):Void
+    {
+        trace('GAMEPAD DOWN '+event.button);
+        if (event.button >= 0 && event.button <= 3) {
+            gamepad_hit = true;
+        }
+        else if (event.button == 11) {
+            gamepad_up++;
+        }
+        else if (event.button == 12) {
+            gamepad_down++;
+        }
+    }
+
+    override function ongamepadup(event:luxe.GamepadEvent):Void
+    {
+        trace('GAMEPAD UP '+event.button);
+        if (event.button == 11) {
+            gamepad_up--;
+        }
+        else if (event.button == 12) {
+            gamepad_down--;
+        }
+    }
 
 
         /* Create a new pencil instance. If there was an existing one, `throw it` */
@@ -351,9 +386,10 @@ class Main extends luxe.Game {
             depth:      7.0001,
         });
 
-        Luxe.loadTexture("assets/game_over.png").filter = FilterType.nearest;
+        Luxe.resources.texture("assets/game_over.png").filter_min = FilterType.nearest;
+        Luxe.resources.texture("assets/game_over.png").filter_mag = FilterType.nearest;
         game_over_visual = new Sprite({
-            texture:    Luxe.loadTexture("assets/game_over.png"),
+            texture:    Luxe.resources.texture("assets/game_over.png"),
             pos:        Luxe.screen.mid,
             depth:      7.0002
         });
@@ -365,17 +401,22 @@ class Main extends luxe.Game {
     override function update(dt:Float) {
 
             // Let's not do something silly. Be patient.
-        if (current_pencil == null) return;
+        if (current_pencil == null) {
+            gamepad_hit = false;
+            return;
+        }
         if (!game_is_started) {
-            if (Luxe.input.inputpressed('space')) {
+            if (Luxe.input.inputpressed('space') || gamepad_hit) {
                 start_game();
             }
+            gamepad_hit = false;
             return;
         }
         else if (game_is_over) {
-            if (Luxe.input.inputpressed('space')) {
+            if (Luxe.input.inputpressed('space') || gamepad_hit) {
                 restart_game();
             }
+            gamepad_hit = false;
             return;
         }
 
@@ -390,13 +431,13 @@ class Main extends luxe.Game {
         }
         else {
                 // Allow pressing space only when the pencil is at its final X position
-            just_pressed_space_key = Luxe.input.inputpressed('space');
+            just_pressed_space_key = Luxe.input.inputpressed('space') || gamepad_hit;
         }
 
             // Look for what is pressed on the keyboard
             // Are we pressing something we care about?
-        pressing_up_key = Luxe.input.inputdown('up');
-        pressing_down_key = Luxe.input.inputdown('down');
+        pressing_up_key = Luxe.input.inputdown('up') || gamepad_up > 0;
+        pressing_down_key = Luxe.input.inputdown('down') || gamepad_down > 0;
 
             // Move current pencil upward
         if (pressing_up_key) {
@@ -439,6 +480,7 @@ class Main extends luxe.Game {
                 if (paper.pos.x + paper_half_width * 0.05 < 0) {
                     paper.color = bad_paper_color;
                     game_over();
+                    gamepad_hit = false;
                     return;
                 }
             } else {
@@ -461,6 +503,8 @@ class Main extends luxe.Game {
 
             // Detect collisions
         detect_collisions();
+
+        gamepad_hit = false;
 
     } //update
 
