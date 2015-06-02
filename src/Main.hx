@@ -68,6 +68,7 @@ class Main extends luxe.Game {
     var gamepad_up: Int = 0;
     var gamepad_down: Int = 0;
     var gamepad_hit: Bool = false;
+    var gamepad_y_axis: Float = 0.0;
 
     override function ready() {
             // Init preload
@@ -133,7 +134,7 @@ class Main extends luxe.Game {
             // Increase speed every 10 second
         Luxe.timer.schedule(1, function() {
             if (level < 100) {
-                var factor:Float = (current_pencil_speed + 25.0) / current_pencil_speed;
+                var factor:Float = (current_pencil_speed + 15.0) / current_pencil_speed;
                 current_pencil_speed *= factor;
                 thrown_pencil_speed *= factor;
                 papers_speed *= factor;
@@ -185,7 +186,7 @@ class Main extends luxe.Game {
 
     override function ongamepaddown(event:luxe.GamepadEvent):Void
     {
-        trace('GAMEPAD DOWN '+event.button);
+        //trace('GAMEPAD DOWN '+event.button);
         if (event.button >= 0 && event.button <= 3) {
             gamepad_hit = true;
         }
@@ -199,7 +200,7 @@ class Main extends luxe.Game {
 
     override function ongamepadup(event:luxe.GamepadEvent):Void
     {
-        trace('GAMEPAD UP '+event.button);
+        //trace('GAMEPAD UP '+event.button);
         if (event.button == 11) {
             gamepad_up--;
         }
@@ -208,6 +209,13 @@ class Main extends luxe.Game {
         }
     }
 
+    override function ongamepadaxis(event:luxe.GamepadEvent):Void
+    {
+        //trace('GAMEPAD AXIS '+event.axis+' '+event.value);
+        if (event.axis == 1) {
+            gamepad_y_axis = event.value;
+        }
+    }
 
         /* Create a new pencil instance. If there was an existing one, `throw it` */
     function use_new_pencil() {
@@ -337,7 +345,10 @@ class Main extends luxe.Game {
 
     function start_game() {
         create_menu();
-        introduction_visual.destroy();
+        if (introduction_visual != null) {
+            introduction_visual.destroy();
+            introduction_visual = null;
+        }
         game_is_started = true;
 
         reset_speed();
@@ -358,6 +369,10 @@ class Main extends luxe.Game {
 
     function restart_game() {
             // Cleanup
+        if (introduction_visual != null) {
+            introduction_visual.destroy();
+            introduction_visual = null;
+        }
         for (paper in papers) {
             paper.destroy();
         }
@@ -369,8 +384,14 @@ class Main extends luxe.Game {
 
         reset_speed();
 
-        game_over_visual.destroy();
-        game_over_box.destroy();
+        if (game_over_visual != null) {
+            game_over_visual.destroy();
+            game_over_visual = null;
+        }
+        if (game_over_box != null) {
+            game_over_box.destroy();
+            game_over_box = null;
+        }
 
             // Start again
         game_is_over = false;
@@ -384,7 +405,7 @@ class Main extends luxe.Game {
 
     function game_over() {
         game_over_box = new Visual({
-            color:      new Color(0.5,0,0,0.2),
+            color:      new Color(0.4,0.1,0.1,0.5),
             size:       new Vector(Luxe.screen.w, Luxe.screen.h),
             pos:        new Vector(0, 0),
             depth:      7.0001,
@@ -400,6 +421,23 @@ class Main extends luxe.Game {
 
         game_is_over = true;
         game_is_over_since = Luxe.time;
+
+        Luxe.timer.schedule(1.5, function() {
+
+                // Display intro
+            Luxe.resources.texture("assets/censored_intro.png").filter_min = FilterType.nearest;
+            Luxe.resources.texture("assets/censored_intro.png").filter_mag = FilterType.nearest;
+            introduction_visual = new Sprite({
+                texture:    Luxe.resources.texture("assets/censored_intro.png"),
+                pos:        Luxe.screen.mid,
+                depth:      7.0003
+            });
+            if (game_over_visual != null) {
+                game_over_visual.destroy();
+                game_over_visual = null;
+            }
+
+        }, false);
     }
 
 
@@ -418,7 +456,7 @@ class Main extends luxe.Game {
             return;
         }
         else if (game_is_over) {
-            if ((Luxe.input.inputpressed('space') || gamepad_hit) && Luxe.time > game_is_over_since + 1.5) {
+            if ((Luxe.input.inputpressed('space') || gamepad_hit) && introduction_visual != null) {
                 restart_game();
             }
             gamepad_hit = false;
@@ -441,8 +479,8 @@ class Main extends luxe.Game {
 
             // Look for what is pressed on the keyboard
             // Are we pressing something we care about?
-        pressing_up_key = Luxe.input.inputdown('up') || gamepad_up > 0;
-        pressing_down_key = Luxe.input.inputdown('down') || gamepad_down > 0;
+        pressing_up_key = Luxe.input.inputdown('up') || gamepad_up > 0 || gamepad_y_axis < -0.5;
+        pressing_down_key = Luxe.input.inputdown('down') || gamepad_down > 0 || gamepad_y_axis > 0.5;
 
             // Move current pencil upward
         if (pressing_up_key) {
